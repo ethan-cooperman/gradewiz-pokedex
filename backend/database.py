@@ -38,9 +38,12 @@ def create_user(conn, user):
     """
     sql = ''' INSERT INTO users(email,password)
               VALUES(?,?) '''
-    cur = conn.cursor()
-    cur.execute(sql, user)
-    return cur.lastrowid
+    try:
+        cur = conn.cursor()
+        cur.execute("INSERT INTO users (email, password) VALUES (?, ?)", user)
+        return cur.lastrowid
+    except sqlite3.IntegrityError:
+        return -1
 
 def create_favorite(conn, favorite):
     """
@@ -60,7 +63,7 @@ def main():
 
     sql_users_table = """ CREATE TABLE IF NOT EXISTS users (
                                         id integer PRIMARY KEY,
-                                        email text NOT NULL,
+                                        email text NOT NULL UNIQUE,
                                         password text NOT NULL,
                                         created datetime DEFAULT CURRENT_TIMESTAMP
                                     ); """

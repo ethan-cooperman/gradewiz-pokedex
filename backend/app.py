@@ -1,5 +1,7 @@
 from flask import Flask, request
+from database import create_connection, create_user, create_favorite
 import requests
+from argon2 import PasswordHasher
 app = Flask(__name__)
 
 @app.route("/get", methods=["GET"])
@@ -35,6 +37,65 @@ def search_pokemon():
                 if keyword.lower() in pokemon["name"].lower():
                     return_json[key].append(pokemon)
     return return_json
+
+@app.route("/register", methods=["POST"])
+def register_user():
+    # Get the JSON body
+    user = request.json
+    if "email" not in user or "password" not in user:
+        return {"result": "Email and password are required"}
+    # Create a connection to the database
+    conn = create_connection("pokedex.db")
+    # Create a new user
+    ph = PasswordHasher()
+    user_id = create_user(conn, (user["email"], ph.hash(user["password"])))
+    if user_id == -1:
+        conn.close()
+        return {"result": "User already exists"}
+    conn.commit()
+    c = conn.cursor()
+    c.execute("SELECT * FROM users")
+    print(c.fetchall())
+    conn.close()
+    return {"user_id": user_id, "result": "User created successfully"}
+
+@app.route("/favorite", methods=["POST"])
+def add_favorite():
+    # Get the JSON body
+    user = request.json
+    # Create a connection to the database
+    conn = create_connection("pokedex.db")
+    # Add a new favorite
+    favorite_id = create_favorite(conn, (user["user_id"], user["pokemon_id"]))
+    conn.commit()
+    conn.close()
+    return {"favorite_id": favorite_id, "result": "Favorite created successfully"}
+
+@app.route("/login", methods=["POST"])
+def login_user():
+    # Get the JSON body
+    user = request.json
+    if "email" not in user or "password" not in user:
+        return {"result": "Email and password are required"}
+    # Create a connection to the database
+    conn = create_connection("pokedex.db")
+    # Get the user from the database
+    c = conn.cursor()
+    print(user["email"])
+    c.execute("SELECT * FROM users WHERE email=?", (user["email"],))
+    user_data = c.fetchone()
+    # Check if the user exists
+    if user_data is None:
+        return {"result": "User does not exist"}
+    # Verify the password
+    ph = PasswordHasher()
+    try:
+        ph.verify(user_data[2], user["password"])
+    except:
+        conn.close()
+        return {"result": "Incorrect password"}
+    conn.close()
+    return {"result": "Login successful", "user_id": user_data[0]}
 
 
 @app.errorhandler(404)
