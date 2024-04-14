@@ -1,0 +1,12 @@
+.cardWindow {
+  position: absolute;
+  background-color: gainsboro;
+  display: flex;
+  height: 90%;
+  top: 10%;
+  width: 80%;
+  left: 20%;
+  flex-wrap: wrap;
+  overflow: auto;
+  justify-content: space-evenly;
+}

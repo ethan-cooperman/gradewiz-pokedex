@@ -1,8 +1,17 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify, make_response
+from flask_cors import CORS
 from database import create_connection, create_user, create_favorite
 import requests
 from argon2 import PasswordHasher
 app = Flask(__name__)
+CORS(app)
+
+def _build_cors_preflight_response():
+    response = make_response()
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    response.headers.add('Access-Control-Allow-Headers', "*")
+    response.headers.add('Access-Control-Allow-Methods', "*")
+    return response
 
 @app.route("/get", methods=["GET"])
 def get_pokemon():
@@ -38,8 +47,10 @@ def search_pokemon():
                     return_json[key].append(pokemon)
     return return_json
 
-@app.route("/register", methods=["POST"])
+@app.route("/register", methods=["POST", "OPTIONS"])
 def register_user():
+    if request.method == "OPTIONS": # CORS preflight
+        return _build_cors_preflight_response()
     # Get the JSON body
     user = request.json
     if "email" not in user or "password" not in user:
@@ -51,16 +62,18 @@ def register_user():
     user_id = create_user(conn, (user["email"], ph.hash(user["password"])))
     if user_id == -1:
         conn.close()
-        return {"result": "User already exists"}
+        response = jsonify({"result": "User already exists"})
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        return response
     conn.commit()
-    c = conn.cursor()
-    c.execute("SELECT * FROM users")
-    print(c.fetchall())
     conn.close()
-    return {"user_id": user_id, "result": "User created successfully"}
+    response = jsonify({"user_id": user_id, "result": "User created successfully"})
+    return response
 
-@app.route("/favorite", methods=["POST"])
+@app.route("/favorite", methods=["POST", "OPTIONS"])
 def add_favorite():
+    if request.method == "OPTIONS": # CORS preflight
+        return _build_cors_preflight_response()
     # Get the JSON body
     user = request.json
     # Create a connection to the database
@@ -71,8 +84,10 @@ def add_favorite():
     conn.close()
     return {"favorite_id": favorite_id, "result": "Favorite created successfully"}
 
-@app.route("/login", methods=["POST"])
+@app.route("/login", methods=["POST", "OPTIONS"])
 def login_user():
+    if request.method == "OPTIONS": # CORS preflight
+        return _build_cors_preflight_response()
     # Get the JSON body
     user = request.json
     if "email" not in user or "password" not in user:

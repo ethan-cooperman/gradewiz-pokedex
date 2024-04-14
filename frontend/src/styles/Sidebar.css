@@ -1,0 +1,14 @@
+.sidebar {
+  position: absolute;
+  background-color: rgba(148, 36, 36, 0.664);
+  height: 90%;
+  left: 0%;
+  bottom: 0%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-top-right-radius: 5%;
+  border-bottom-right-radius: 5%;
+  width: 20%;
+  opacity: 1;
+}
