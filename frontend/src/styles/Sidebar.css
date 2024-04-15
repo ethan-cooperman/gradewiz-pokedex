@@ -11,4 +11,5 @@
   border-bottom-right-radius: 5%;
   width: 20%;
   opacity: 1;
+  flex-direction: column;
 }

@@ -1,9 +1,13 @@
 from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
 from database import create_connection, create_user, create_favorite
-import requests
 from argon2 import PasswordHasher
+import requests
+from flask_caching import Cache
+import sys
+
 app = Flask(__name__)
+cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 CORS(app)
 
 def _build_cors_preflight_response():
@@ -14,23 +18,26 @@ def _build_cors_preflight_response():
     return response
 
 @app.route("/get", methods=["GET"])
+@cache.memoize(timeout=60)
 def get_pokemon():
     # Get the query parameters
     offset = request.args.get("offset", default=0, type=int)
     limit = request.args.get("limit", default=25, type=int)
     page = request.args.get("page", default=1, type=int)
     pokemon_response = requests.get(f"https://pokeapi.co/api/v2/pokemon?offset={offset + limit * (page - 1)}&limit={limit}")
+    print("Requesting data from pokeapi")
     pokemon_response.raise_for_status()
     return pokemon_response.json()
 
 @app.route("/search", methods=["GET"])
+@cache.memoize(timeout=60)
 def search_pokemon():
     # Get the query parameters
     offset = request.args.get("offset", default=0, type=int)
-    limit = request.args.get("limit", default=10000, type=int)
+    limit = request.args.get("limit", default=100000, type=int)
     page = request.args.get("page", default=1, type=int)
     keyword = request.args.get("keyword", default="", type=str)
-    pokemon_response = requests.get(f"https://pokeapi.co/api/v2/pokemon?offset={offset + limit * (page - 1)}&limit={limit}")
+    pokemon_response = get_pokemon()
     # Check if the request was successful
     pokemon_response.raise_for_status()
     # Convert the response to JSON
