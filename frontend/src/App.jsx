@@ -32,7 +32,7 @@ function App() {
         viewCollected={viewCollected}
         setViewCollected={setViewCollected}
       />
-      <CardWindow cards={cards} />
+      <CardWindow cards={cards} user={user} />
       <Header user={user} setUser={setUser} />
     </div>
   );

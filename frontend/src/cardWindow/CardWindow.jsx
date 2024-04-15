@@ -6,7 +6,7 @@ function CardWindow(props) {
   return (
     <div className="cardWindow">
       {props.cards.map((card, index) => (
-        <Card card={card} key={index} />
+        <Card card={card} key={index} user={props.user} />
       ))}
     </div>
   );

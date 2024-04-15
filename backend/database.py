@@ -36,14 +36,13 @@ def create_user(conn, user):
     :param user:
     :return: user id
     """
-    sql = ''' INSERT INTO users(email,password)
-              VALUES(?,?) '''
     try:
         cur = conn.cursor()
         cur.execute("INSERT INTO users (email, password) VALUES (?, ?)", user)
         return cur.lastrowid
     except sqlite3.IntegrityError:
         return -1
+    
 
 def create_favorite(conn, favorite):
     """
@@ -54,9 +53,24 @@ def create_favorite(conn, favorite):
     """
     sql = ''' INSERT INTO favorites(user_id,pokemon_id)
               VALUES(?,?) '''
+    try:
+        cur = conn.cursor()
+        cur.execute(sql, favorite)
+        return cur.lastrowid
+    except sqlite3.IntegrityError:
+        return -1
+
+def delete_favorite(conn, favorite):
+    """
+    Create a new favorite into the favorites table
+    :param conn:
+    :param favorite:
+    :return: favorite id
+    """
+    sql = ''' DELETE FROM favorites WHERE user_id=? AND pokemon_id=? '''
     cur = conn.cursor()
     cur.execute(sql, favorite)
-    return cur.lastrowid
+    return cur.rowcount
 
 def main():
     database = "pokedex.db"

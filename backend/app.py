@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
-from database import create_connection, create_user, create_favorite
+from database import create_connection, create_user, create_favorite, delete_favorite
 from argon2 import PasswordHasher
 import requests
 from flask_caching import Cache
@@ -9,6 +9,7 @@ import sys
 app = Flask(__name__)
 cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 CORS(app)
+
 
 def _build_cors_preflight_response():
     response = make_response()
@@ -82,14 +83,34 @@ def add_favorite():
     if request.method == "OPTIONS": # CORS preflight
         return _build_cors_preflight_response()
     # Get the JSON body
-    user = request.json
+    params = request.json
     # Create a connection to the database
     conn = create_connection("pokedex.db")
     # Add a new favorite
-    favorite_id = create_favorite(conn, (user["user_id"], user["pokemon_id"]))
+    favorite_id = create_favorite(conn, (params["user_id"], params["pokemon_id"]))
+    if favorite_id == -1:
+        conn.close()
+        return {"result": "Favorite already exists"}
     conn.commit()
     conn.close()
     return {"favorite_id": favorite_id, "result": "Favorite created successfully"}
+
+@app.route("/unfavorite", methods=["POST", "OPTIONS"])
+def unfavorite():
+    if request.method == "OPTIONS": # CORS preflight
+        return _build_cors_preflight_response()
+    # Get the JSON body
+    params = request.json
+    # Create a connection to the database
+    conn = create_connection("pokedex.db")
+    # Add a new favorite
+    delete_count = delete_favorite(conn, (params["user_id"], params["pokemon_id"]))
+    conn.commit()
+    if delete_count == 0:
+        conn.close()
+        return {"result": "Could not find that favorite to delete"}
+    conn.close()
+    return {"delete_count": delete_count, "result": "Favorite deleted successfully", "user_id": params["user_id"], "pokemon_id": params["pokemon_id"]}
 
 @app.route("/login", methods=["POST", "OPTIONS"])
 def login_user():
@@ -103,7 +124,6 @@ def login_user():
     conn = create_connection("pokedex.db")
     # Get the user from the database
     c = conn.cursor()
-    print(user["email"])
     c.execute("SELECT * FROM users WHERE email=?", (user["email"],))
     user_data = c.fetchone()
     # Check if the user exists

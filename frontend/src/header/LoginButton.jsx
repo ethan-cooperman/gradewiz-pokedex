@@ -63,7 +63,6 @@ function LoginButton(props) {
         return response.json();
       })
       .then((data) => {
-        console.log(data);
         if (data.result === "User created successfully") {
           console.log("User created" + data.user_id);
           props.setUser({ user_id: data.user_id, user_email: email });

@@ -52,6 +52,8 @@ function Sidebar(props) {
           marginTop: "3%",
           marginLeft: "10%",
         }}
+        value={props.viewCollected}
+        onChange={(e) => props.setViewCollected(e.target.value)}
       >
         <option value="all">All</option>
         <option value="collected">Collected</option>
