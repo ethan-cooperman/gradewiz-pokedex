@@ -72,6 +72,18 @@ def delete_favorite(conn, favorite):
     cur.execute(sql, favorite)
     return cur.rowcount
 
+def check_favorite(conn, favorite):
+    """
+    Create a new favorite into the favorites table
+    :param conn:
+    :param favorite:
+    :return: favorite id
+    """
+    sql = ''' SELECT * FROM favorites WHERE user_id=? AND pokemon_id=? '''
+    cur = conn.cursor()
+    cur.execute(sql, favorite)
+    return cur.rowcount
+
 def main():
     database = "pokedex.db"
 

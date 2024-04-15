@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
-from database import create_connection, create_user, create_favorite, delete_favorite
+from database import create_connection, create_user, create_favorite, delete_favorite, check_favorite
 from argon2 import PasswordHasher
 import requests
 from flask_caching import Cache
@@ -26,7 +26,9 @@ def get_pokemon():
     limit = request.args.get("limit", default=25, type=int)
     page = request.args.get("page", default=1, type=int)
     pokemon_response = requests.get(f"https://pokeapi.co/api/v2/pokemon?offset={offset + limit * (page - 1)}&limit={limit}")
-    print("Requesting data from pokeapi")
+    conn = create_connection("pokedex.db")
+    for pokemon in pokemon_response.json()["results"]:
+        pokemon["caught"] = False
     pokemon_response.raise_for_status()
     return pokemon_response.json()
 
