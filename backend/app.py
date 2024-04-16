@@ -36,7 +36,7 @@ def extract_pokemon_id(url):
 def get_pokemon():
     # Get the query parameters
     offset = request.args.get("offset", default=0, type=int)
-    limit = request.args.get("limit", default=100, type=int)
+    limit = request.args.get("limit", default=10000, type=int)
     page = request.args.get("page", default=1, type=int)
     pokemon_response = requests.get(f"https://pokeapi.co/api/v2/pokemon?offset={offset + limit * (page - 1)}&limit={limit}")
     conn = create_connection("pokedex.db")
@@ -48,7 +48,7 @@ def get_pokemon():
 def search_pokemon():
     # Get the query parameters
     offset = request.args.get("offset", default=0, type=int)
-    limit = request.args.get("limit", default=100, type=int)
+    limit = request.args.get("limit", default=10000, type=int)
     page = request.args.get("page", default=1, type=int)
     keyword = request.args.get("keyword", default="", type=str)
     user_id = request.args.get("user_id", default=-1, type=int)

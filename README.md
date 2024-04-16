@@ -2,13 +2,13 @@
 
 ## Description
 
-This is my pokedex for the GradeWiz Interview Process. Contained in this repository is a backend that serves a RESTful API using Python Flask and a frontend that renders a pokedex page using React. Pokemon data comes from PokeAPI. In order to store user data, the backend uses a SQLite database. It is highly recommended to use the page with an account in order to catch pokemon. This page is somewhat slow at the moment due to limitations with vanilla React and lack of pagination, but user functionality will work as expected given a few seconds.
+This is my pokedex for the GradeWiz Interview Process. Contained in this repository is a backend that serves a RESTful API using Python Flask and a frontend that renders a pokedex page using React. Pokemon data comes from PokeAPI. In order to store user data, the backend hosts a SQLite database locally in the pokedex.db file. It is highly recommended to use the page with an account in order to catch pokemon. This page is somewhat slow at the moment due to limitations with vanilla React and lack of pagination, but user functionality will work as expected given a few seconds.
 
 ## Features
 
 ### User Authentication
 
-A simple user authentification system is implemented. Users can sign up, log in, and log out. The backend uses the argon hashing algorithm to hash passwords before storing them in the database.
+A simple user authentification system is implemented. Users can sign up, log in, and log out. The backend uses the argon2 hashing algorithm to hash passwords before storing them in the database.
 
 ### Searching
 
@@ -63,7 +63,7 @@ Run the backend with
 flask run
 ```
 
-The backend should now be running on localhost:5000
+The backend should now be running on localhost:5000. Note that you may have to turn off airplay receiver temporarily on Mac because it can also use port 5000.
 
 ### Frontend
 
