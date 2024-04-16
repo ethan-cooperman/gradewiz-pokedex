@@ -8,7 +8,7 @@ This is my pokedex for the GradeWiz Interview Process. Contained in this reposit
 
 ### User Authentication
 
-A simple user authentification system is implemented. Users can sign up, log in, and log out. The backend uses the argon2 hashing algorithm to hash passwords before storing them in the database.
+A simple user authentification system is implemented. Users can sign up, log in, and log out. The backend uses the argon2 hashing algorithm to hash passwords before storing them in an SQLite local database.
 
 ### Searching
 
@@ -20,7 +20,7 @@ Clicking the pokeball icon will "catch" the pokemon. The pokemon will then be ad
 
 ### Pokemon Details
 
-Every Pokemon card shows the Pokemon's name, image, and type. The cards also have a description including their HP and abilities. The description is fetched from the PokeAPI.
+Every Pokemon card shows the Pokemon's name, image, and type. The cards also have a description including their HP and abilities. The description is fetched from the PokeAPI with caching to reduce the number of requests.
 
 ## Installing and Running the Pokedex
 
