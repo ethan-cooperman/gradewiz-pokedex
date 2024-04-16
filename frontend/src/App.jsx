@@ -12,27 +12,33 @@ function App() {
   const [cards, setCards] = useState(mockedCards);
   const [cardCount, setCardCount] = useState(25);
   const [viewCollected, setViewCollected] = useState("all");
-
+  let user_id = !user ? -1 : user.user_id;
   useEffect(() => {
-    fetch(`http://localhost:5000/get?limit=${limit}&page=${page}`)
+    user_id = !user ? -1 : user.user_id;
+    fetch(`http://localhost:5000/search?keyword=&user_id=${user_id}`)
       .then((response) => response.json())
       .then((data) => {
         const fetchPromises = data.results.map((result) =>
-          fetch(result.url).then((response) => response.json())
+          fetch(result.url)
+            .then((response) => response.json())
+            .then((cardData, index) => {
+              return { ...cardData, caught: result.caught };
+            })
         );
         return Promise.all(fetchPromises);
       })
       .then((newCards) => setCards(newCards))
       .catch((error) => console.error(error));
-  }, [page, limit]);
+  }, [page, limit, user]);
   return (
     <div className="pageContainer">
       <Sidebar
         setCards={setCards}
         viewCollected={viewCollected}
         setViewCollected={setViewCollected}
+        user={user}
       />
-      <CardWindow cards={cards} user={user} />
+      <CardWindow cards={cards} user={user} viewCollected={viewCollected} />
       <Header user={user} setUser={setUser} />
     </div>
   );

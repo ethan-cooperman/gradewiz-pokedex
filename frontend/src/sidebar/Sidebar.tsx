@@ -6,15 +6,29 @@ function Sidebar(props) {
   const [search, setSearch] = useState("");
   const [searchHistory, setSearchHistory] = useState([]);
   function makeSearch(search) {
-    fetch(`http://localhost:5000/search?keyword=${search}`)
-      .then((response) => response.json())
+    const user_id = !props.user ? -1 : props.user.user_id;
+    fetch(`http://localhost:5000/search?keyword=${search}&user_id=${user_id}`)
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          console.log(response);
+          throw new Error("Failed to search");
+        }
+      })
       .then((data) => {
         const fetchPromises = data.results.map((result) =>
-          fetch(result.url).then((response) => response.json())
+          fetch(result.url)
+            .then((response) => response.json())
+            .then((cardData) => {
+              return { ...cardData, caught: result.caught };
+            })
         );
         return Promise.all(fetchPromises);
       })
-      .then((newCards) => props.setCards(newCards))
+      .then((newCards) => {
+        props.setCards(newCards);
+      })
       .catch((error) => console.error(error));
   }
   return (

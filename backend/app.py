@@ -18,43 +18,55 @@ def _build_cors_preflight_response():
     response.headers.add('Access-Control-Allow-Methods', "*")
     return response
 
+def make_cache_key(*args, **kwargs):
+    path = request.path
+    args = str(hash(frozenset(request.args.items())))
+    return (path + args).encode('utf-8')
+
+def extract_pokemon_id(url):
+    ans = ""
+    for i in range(len(url) - 2, -1, -1):
+        if url[i] == "/":
+            break
+        ans = url[i] + ans
+    return ans
+
 @app.route("/get", methods=["GET"])
 @cache.memoize(timeout=60)
 def get_pokemon():
     # Get the query parameters
     offset = request.args.get("offset", default=0, type=int)
-    limit = request.args.get("limit", default=25, type=int)
+    limit = request.args.get("limit", default=100, type=int)
     page = request.args.get("page", default=1, type=int)
     pokemon_response = requests.get(f"https://pokeapi.co/api/v2/pokemon?offset={offset + limit * (page - 1)}&limit={limit}")
     conn = create_connection("pokedex.db")
-    for pokemon in pokemon_response.json()["results"]:
-        pokemon["caught"] = False
     pokemon_response.raise_for_status()
     return pokemon_response.json()
 
 @app.route("/search", methods=["GET"])
-@cache.memoize(timeout=60)
+@cache.cached(timeout=60, key_prefix=make_cache_key)
 def search_pokemon():
     # Get the query parameters
     offset = request.args.get("offset", default=0, type=int)
-    limit = request.args.get("limit", default=100000, type=int)
+    limit = request.args.get("limit", default=100, type=int)
     page = request.args.get("page", default=1, type=int)
     keyword = request.args.get("keyword", default="", type=str)
+    user_id = request.args.get("user_id", default=-1, type=int)
     pokemon_response = get_pokemon()
-    # Check if the request was successful
-    pokemon_response.raise_for_status()
-    # Convert the response to JSON
-    pokemon_json = pokemon_response.json()
+    conn = create_connection("pokedex.db")
     # Filter the JSON based on the keyword
     return_json = {}
-    for key in pokemon_json:
+    for key in pokemon_response:
         if key != "results":
-            return_json[key] = pokemon_json[key]
+            return_json[key] = pokemon_response[key]
         else:
             return_json[key] = []
-            for pokemon in pokemon_json[key]:
+            for pokemon in pokemon_response[key]:
                 if keyword.lower() in pokemon["name"].lower():
+                    pokemon["caught"] = check_favorite(conn, (int(user_id), int(extract_pokemon_id(pokemon["url"])))) > 0
                     return_json[key].append(pokemon)
+    conn.commit()
+    conn.close()
     return return_json
 
 @app.route("/register", methods=["POST", "OPTIONS"])

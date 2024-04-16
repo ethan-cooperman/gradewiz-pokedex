@@ -1,6 +1,9 @@
 import sqlite3
 from sqlite3 import Error
 
+def print_log(message):
+    with open("log.txt", "a") as log_file:
+        log_file.write(message + "\n")
 
 def create_connection(db_file):
     """ create a database connection to the SQLite database
@@ -74,7 +77,7 @@ def delete_favorite(conn, favorite):
 
 def check_favorite(conn, favorite):
     """
-    Create a new favorite into the favorites table
+    Check if a favorite is in the favorites table
     :param conn:
     :param favorite:
     :return: favorite id
@@ -82,7 +85,7 @@ def check_favorite(conn, favorite):
     sql = ''' SELECT * FROM favorites WHERE user_id=? AND pokemon_id=? '''
     cur = conn.cursor()
     cur.execute(sql, favorite)
-    return cur.rowcount
+    return len(cur.fetchall())
 
 def main():
     database = "pokedex.db"
@@ -100,6 +103,7 @@ def main():
                                         pokemon_id integer NOT NULL,
                                         created datetime DEFAULT CURRENT_TIMESTAMP,
                                         FOREIGN KEY (user_id) REFERENCES users (id)
+                                        UNIQUE(user_id, pokemon_id)
                                     ); """
     
 

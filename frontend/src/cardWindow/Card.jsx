@@ -8,18 +8,16 @@ function Card(props) {
     return string.charAt(0).toUpperCase() + string.slice(1);
   };
 
+  useEffect(() => {
+    setIsCollected(props.card.caught);
+  }, [props.card.caught]);
+
   const handleCatch = async () => {
     if (!props.user) {
       alert("Please sign in to catch Pokemon");
       return;
     }
     if (!isCollected) {
-      console.log(
-        "Catching Pokemon with id " +
-          props.card.id +
-          " for user " +
-          props.user.user_id
-      );
       fetch("http://localhost:5000/favorite", {
         method: "POST",
         headers: {
@@ -48,12 +46,6 @@ function Card(props) {
           console.error("Error:", error);
         });
     } else {
-      console.log(
-        "Releasing Pokemon with id " +
-          props.card.id +
-          " for user " +
-          props.user.user_id
-      );
       fetch("http://localhost:5000/unfavorite", {
         method: "POST",
         headers: {
@@ -71,7 +63,6 @@ function Card(props) {
           return response.json();
         })
         .then((data) => {
-          console.log(data);
           if (data.result === "Favorite deleted successfully") {
             setIsCollected(false);
           } else {
